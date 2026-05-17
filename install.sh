@@ -16,3 +16,23 @@ sudo chmod +x /usr/local/bin/kiosk-browser
 
 echo "Installed /usr/local/bin/kiosk-browser"
 echo "Configuration file: /etc/kiosk.env"
+
+# Configure LXDE autostart for Raspberry Pi OS (rpd-x session)
+sudo tee /etc/xdg/lxsession/rpd-x/autostart >/dev/null <<'EOF'
+@lxpanel-pi
+@pcmanfm-pi
+@xscreensaver -no-splash
+
+# Disable screen blanking and power saving
+@xset s off
+@xset -dpms
+@xset s noblank
+
+# Hide mouse cursor
+@unclutter -idle 0 -root
+
+# Launch Chromium kiosk
+@/usr/local/bin/kiosk-browser
+EOF
+
+echo "Configured /etc/xdg/lxsession/rpd-x/autostart"
