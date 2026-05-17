@@ -1,0 +1,58 @@
+#!/bin/bash
+set -e
+
+# Load environment variables from /etc/kiosk.env if present
+if [ -f /etc/kiosk.env ]; then
+  set -a
+  . /etc/kiosk.env
+  set +a
+fi
+
+# Required variables
+: "${KIOSK_USER:?KIOSK_USER is not set}"
+: "${KIOSK_URL:?KIOSK_URL is not set}"
+
+URL="$KIOSK_URL"
+
+PROFILE_DIR="/home/$KIOSK_USER/.config/chromium-kiosk"
+CACHE_DIR="/home/$KIOSK_USER/.cache/chromium-kiosk"
+
+export DISPLAY=:0
+export XAUTHORITY="/home/$KIOSK_USER/.Xauthority"
+
+for i in {1..15}; do
+  xdpyinfo >/dev/null 2>&1 && break
+  sleep 1
+done
+
+if command -v chromium >/dev/null 2>&1; then
+  CHROME=chromium
+elif command -v chromium-browser >/dev/null 2>&1; then
+  CHROME=chromium-browser
+else
+  exit 1
+fi
+
+pkill -f "$CHROME" 2>/dev/null || true
+sleep 1
+
+rm -rf "$PROFILE_DIR"
+rm -rf "$CACHE_DIR"
+
+exec "$CHROME" \
+  --kiosk \
+  --start-fullscreen \
+  --no-first-run \
+  --no-default-browser-check \
+  --disable-session-crashed-bubble \
+  --disable-infobars \
+  --disable-features=Translate,TranslateUI \
+  --disable-translate \
+  --restore-last-session=false \
+  --homepage="$URL" \
+  --lang=en-US \
+  --autoplay-policy=no-user-gesture-required \
+  --ozone-platform=x11 \
+  --user-data-dir="$PROFILE_DIR" \
+  --disk-cache-dir="$CACHE_DIR" \
+  "$URL"
