@@ -36,3 +36,18 @@ sudo tee /etc/xdg/lxsession/rpd-x/autostart >/dev/null <<'EOF'
 EOF
 
 echo "Configured /etc/xdg/lxsession/rpd-x/autostart"
+
+# Disable GNOME Keyring popup ("Choose password for new keyring")
+systemctl --user disable --now \
+  gnome-keyring-daemon.service \
+  gnome-keyring-daemon.socket 2>/dev/null || true
+
+systemctl --user mask \
+  gnome-keyring-daemon.service \
+  gnome-keyring-daemon.socket 2>/dev/null || true
+
+# Remove the package entirely
+sudo apt purge -y gnome-keyring || true
+sudo apt autoremove -y || true
+
+echo "Disabled GNOME Keyring"
